@@ -6,10 +6,10 @@ Not all of CRON spec is implemented in this project due to the limitations inher
 
 # Proponents
 
-johannahmae.abestano@g.msuiit.edu.ph
-reggielloyd.aguilar@g.msuiit.edu.ph
-kento.fujimori@g.msuiit.edu.ph
-mohammadali.muti@g.msuiit.edu.ph
-mariomiguel.celdran@g.msuiit.edu.ph
-gilmichael.regalado@g.msuiit.edu.ph
+1. johannahmae.abestano@g.msuiit.edu.ph
+2. reggielloyd.aguilar@g.msuiit.edu.ph
+3. kento.fujimori@g.msuiit.edu.ph
+4. mohammadali.muti@g.msuiit.edu.ph
+5. mariomiguel.celdran@g.msuiit.edu.ph
+6. gilmichael.regalado@g.msuiit.edu.ph
 
