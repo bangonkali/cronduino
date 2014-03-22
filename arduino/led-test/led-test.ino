@@ -1,6 +1,6 @@
 int ledPins[] = {0,1,9,10,11,12,13};                 // LED connected to digital pin 13
 int i;
-int delay_valu = 10000;
+int delay_valu = 100;
 
 void setup()
 {
