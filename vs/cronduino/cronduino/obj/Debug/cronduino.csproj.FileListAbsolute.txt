@@ -1,0 +1,9 @@
+D:\PROJ\cronduino\vs\cronduino\cronduino\bin\Debug\cronduino.exe
+D:\PROJ\cronduino\vs\cronduino\cronduino\bin\Debug\cronduino.pdb
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.csprojResolveAssemblyReference.cache
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.frmEntry.resources
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.frmScheduler.resources
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.Properties.Resources.resources
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.csproj.GenerateResource.Cache
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.exe
+D:\PROJ\cronduino\vs\cronduino\cronduino\obj\Debug\cronduino.pdb
