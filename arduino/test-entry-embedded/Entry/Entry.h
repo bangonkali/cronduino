@@ -14,6 +14,7 @@ class ScheduleEntry {
 public:
     // Constructor definition
     ScheduleEntry(const uint8_t *entry);
+    ScheduleEntry();
 
 	enum CLASSDATA {
 		ASTERISK = 255,

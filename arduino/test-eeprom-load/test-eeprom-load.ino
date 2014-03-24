@@ -28,12 +28,26 @@ bool read_flag = false;
 int eeprom_value = 0;
 bool SerialMode = true;
 
+volatile unsigned char state = 0;
+unsigned char terminator_buffers[3];
+unsigned char entries[1024];
+unsigned char current_entry[24];
+unsigned char current_entries = 0;
+
+char display_buffer[16];
+int entry_bytes_counter = 0;
+
+ScheduleEntry _ScheduleEntry;
+
 /*******************************************************************************************************
  * Initialization
  *******************************************************************************************************/
 void setup()
 {
+	Wire.begin();
+	RTC.begin();
 	RTC.adjust(DateTime(__DATE__, __TIME__)); // set the date and time to compilation time
+
 	pinMode(A3, INPUT); // sets whether we are at serial mode (0) or scheduler mode (1)
 	lcd.begin(16, 2); // set up the LCD's number of columns and rows
 	
@@ -45,36 +59,69 @@ void setup()
 			pinMode(ledPins[i], OUTPUT);      // sets the digital pin as output
 		}
 
-		Wire.begin();
-		RTC.begin();
-
 		if (! RTC.isrunning()) {
 			lcd.print("RTC is NOT running!");
 			// following line sets the RTC to the date & time this sketch was compiled
 			
 		} else {
-			lcd.print("RTC is running!");
-			delay(2000);
-			lcd.clear();
+			lcd.print("RTC OK!");
 		}
+
+		delay(2000);
+
+		// load eeprom data
+		for(int i=0; i<1024; i++){
+		    entries[i] = EEPROM.read(i);
+		}
+
+
+		lcd.setCursor(0, 1);
+		lcd.print("EEPROM LOADED!");
+
+		delay(2000);
+
 	} else {
 		SerialMode = true;
 		Serial.begin(9600);
 
-		lcd.print("Please Connect");
-		lcd.setCursor(0, 1);
-		lcd.print("To USB Port");
-
-		while (!Serial) {
-			; // wait for serial port to connect. Needed for Leonardo only
-		}
-
 		lcd.clear();
 		lcd.print("Serial Mode");
 	}
+}
 
-	
+void serialEvent() {
+	while (Serial.available()) {
+		// get the new byte:
+		unsigned char inChar = (char)Serial.read(); 
 
+		if (state == 0) {
+			if (inChar == 'B') {
+				state = 1;
+			}
+		} else if (state == 1) {
+			if (inChar == 'E') {
+				state = 2;
+			}
+		} else if (state == 2) {
+			if (inChar == 'G') {
+				entry_bytes_counter = 0;
+				state = 3;				
+			}
+		} else if (state == 3) {
+			entries[entry_bytes_counter] = inChar;
+
+			terminator_buffers[0] = entries[entry_bytes_counter - 2];
+			terminator_buffers[1] = entries[entry_bytes_counter - 1];
+			terminator_buffers[2] = inChar;
+			terminator_buffers[3] = '\0';
+
+			entry_bytes_counter++;
+
+			if (terminator_buffers[0] == 'E' && terminator_buffers[1] == 'N' && terminator_buffers[2] == 'D') {
+				state = 5;
+			}			
+		}
+	}
 }
 
 /*******************************************************************************************************
@@ -83,58 +130,73 @@ void setup()
 void loop()
 {
 	if (!SerialMode) { // scheduler mode
-		// sec, state, pin
-		set_schedule(0, ScheduleEntry::ON, 0);
-		set_schedule(10, ScheduleEntry::OFF, 0);
+		// load eeprom data
 
-		set_schedule(5, ScheduleEntry::ON, 1);
-		set_schedule(15, ScheduleEntry::OFF, 1);
+		// total entries = (1024 eeprom total bytes)/(24 bytes per entry)
+		int k = 0; // current eeprom address
+		for(int i=0; i<42; i++){  // current eeprom entry
 
-		set_schedule(10, ScheduleEntry::ON, 2);
-		set_schedule(20, ScheduleEntry::OFF, 2);
+			// get current entry
+			for(int j=0; j<24; j++){ // current entry address
+				current_entry[j] = entries[k];
+			    k++;
 
-		set_schedule(25, ScheduleEntry::ON, ScheduleEntry::ASTERISK);
-		set_schedule(26, ScheduleEntry::OFF, ScheduleEntry::ASTERISK);
+			    // lcd.clear();
+			    // lcd.print(j);
+			    // lcd.setCursor(0, 1);
+			    // lcd.print(current_entry[j]);
+			    // delay(1000);
+			}
 
-		set_schedule(30, ScheduleEntry::ON, 3);
-		set_schedule(35, ScheduleEntry::ON, 4);
+			// check the current entry
+			if (isEmpty(current_entry)) {
+				break;
+			} else {
+				current_entries++;
+				
+				// activate current entry
+				_ScheduleEntry.SetEntry(current_entry);
+				_ScheduleEntry.ActivateEntry(RTC);
+			}
+		}
 
-		set_schedule(40, ScheduleEntry::ON, 5);
-		set_schedule(45, ScheduleEntry::ON, 6);
+		// slower refresh rate
+		if (millis() % 1000 < 150) {
+			printTime();
+			lcd.setCursor(10, 1);
+			lcd.print("SCHD");
 
-		set_schedule(59, ScheduleEntry::OFF, ScheduleEntry::ASTERISK);
+			lcd.setCursor(15, 1);
+			lcd.print(current_entries);
+			current_entries = 0;
+		}
 
-		now = RTC.now();
+		// delay(1000);
 
-		lcd.clear();
-
-		lcd.setCursor(0, 0);
-	    lcd.print(now.year(), DEC);
-	    lcd.print('/');
-	    lcd.print(now.month(), DEC);
-	    lcd.print('/');
-	    lcd.print(now.day(), DEC);
-
-	    lcd.setCursor(0, 1);
-	    lcd.print(now.hour(), DEC);
-	    lcd.print(':');
-	    lcd.print(now.minute(), DEC);
-	    lcd.print(':');
-	    lcd.print(now.second(), DEC);
-
-
-	 //    if (!read_flag) {
-		//     lcd.setCursor(10, 1);
-		//     EEPROM.write(1023, 103);
-		//     eeprom_value = EEPROM.read(1023);
-		//     lcd.print(eeprom_value, DEC);
-		//     read_flag = true;
-		// } else {
-		// 	lcd.setCursor(10, 1);
-		// 	lcd.print(eeprom_value, DEC);
-		// }
 	} else { // serialMode
+		if (state == 3) {
+			lcd.clear();
+			lcd.print("LOADING");
+		} else if (state == 5) {
 
+			for(int i=entry_bytes_counter-4; i<1024; i++){
+			    entries[i] = ScheduleEntry::EMPTY;
+			}
+
+			for(int i=0; i<1024; i++){
+			    EEPROM.write(i, entries[i]);
+			}
+
+			lcd.clear();
+			lcd.print("FINISHED LOADING");
+
+			sprintf (display_buffer, "BYTES: %4d", entry_bytes_counter-3);
+			lcd.setCursor(0, 1);
+			lcd.print(display_buffer);
+
+			state = 0;
+			entry_bytes_counter = 0;
+		}
 	}
 }
 
@@ -170,6 +232,36 @@ void set_schedule(unsigned char sec, unsigned char state, unsigned char pin) {
 	entry[22] = 0; // YearClassifier
 	entry[23] = 0; // YearUpper
 
-	ScheduleEntry schedul_entry(entry);
-	schedul_entry.ActivateEntry(RTC);
+	ScheduleEntry _ScheduleEntry(entry);
+	_ScheduleEntry.ActivateEntry(RTC);
+}
+
+bool isEmpty(unsigned char *data) {
+	for(int i=0; i<24; i++){
+	    if (data[i] != ScheduleEntry::EMPTY) {
+	    	return false;
+	    }
+	}
+
+	return true;
+}
+
+void printTime() {
+	now = RTC.now();
+
+	lcd.clear();
+
+	lcd.setCursor(0, 0);
+    lcd.print(now.year(), DEC);
+    lcd.print('/');
+    lcd.print(now.month(), DEC);
+    lcd.print('/');
+    lcd.print(now.day(), DEC);
+
+    lcd.setCursor(0, 1);
+    lcd.print(now.hour(), DEC);
+    lcd.print(':');
+    lcd.print(now.minute(), DEC);
+    lcd.print(':');
+    lcd.print(now.second(), DEC);
 }

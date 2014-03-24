@@ -15,6 +15,9 @@ ScheduleEntry::ScheduleEntry(const uint8_t *entry) {
 	this->SetEntry(entry);
 };
 
+ScheduleEntry::ScheduleEntry() {
+};
+
 uint8_t ScheduleEntry::SetEntry(const uint8_t *entry) {
 	// entry is the input initial address in memory taken from the eeprom
 	// entry_s is the return value which is the arranged value.
@@ -71,17 +74,32 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 			if (time.second() > ssu && time.second() < ssl) {
 				return 0;
 			}
-		}
-		if (ssl != time.second() && ssl != ASTERISK) {
+		} else if (ssl == ASTERISK && ssc == SLASH) {
+			if ((time.second() % ssu) != 0) {
+				return 0;
+			}
+		} else if (ssc == SLASH) {
+			if (((time.second() + ssl) % ssu) != 0) {
+				return 0;
+			}
+		} else if (ssl != time.second() && ssl != ASTERISK) {
 			return 0;
 		}
+
 
 		if (mnc == DASH) {
 			if (time.minute() > mnu && time.minute() < mnl) {
 				return 0;
 			}
-		}
-		if (mnl != time.minute() && mnl != ASTERISK) {
+		} else if (mnl == ASTERISK && mnc == SLASH) {
+			if (time.minute() % mnu != 0) {
+				return 0;
+			}
+		} else if (mnc == SLASH) {
+			if ((time.minute() + mnl) % mnu != 0) {
+				return 0;
+			}
+		} else if (mnl != time.minute() && mnl != ASTERISK) {
 			return 0;
 		}
 
@@ -90,8 +108,15 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 			if (time.hour() > hhu && time.hour() < hhl) {
 				return 0;
 			}
-		}
-		if (hhl != time.hour() && hhl != ASTERISK) {
+		} else if (hhl == ASTERISK && hhc == SLASH) {
+			if (time.hour() % hhu != 0) {
+				return 0;
+			}
+		} else if (hhc == SLASH) {
+			if ((time.hour() + hhl) % hhu != 0) {
+				return 0;
+			}
+		} else if (hhl != time.hour() && hhl != ASTERISK) {
 			return 0;
 		}
 
@@ -100,8 +125,15 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 			if (time.day() > mdu && time.day() < mdl) {
 				return 0;
 			}
-		}
-		if (mdl != time.day() && mdl != ASTERISK) {
+		} else if (mdl == ASTERISK && mdc == SLASH) {
+			if (time.day() % mdu != 0) {
+				return 0;
+			}
+		} else if (mdc == SLASH) {
+			if ((time.day() + mdl) % mdu != 0) {
+				return 0;
+			}
+		} else if (mdl != time.day() && mdl != ASTERISK) {
 			return 0;
 		}
 
@@ -110,8 +142,15 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 			if (time.dayOfWeek() > wdu && time.dayOfWeek() < wdl) {
 				return 0;
 			}
-		}
-		if (wdl != time.dayOfWeek() && wdl != ASTERISK) {
+		} else if (wdl == ASTERISK && wdc == SLASH) {
+			if (time.dayOfWeek() % wdu != 0) {
+				return 0;
+			}
+		} else if (wdc == SLASH) {
+			if ((time.dayOfWeek() + wdl) % wdu != 0) {
+				return 0;
+			}
+		} else if (wdl != time.dayOfWeek() && wdl != ASTERISK) {
 			return 0;
 		}
 
@@ -120,18 +159,32 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 			if (time.month() > mou && time.month() < mol) {
 				return 0;
 			}
-		}
-		if (mol != time.month() && mol != ASTERISK) {
+		} else if (mol == ASTERISK && moc == SLASH) {
+			if (time.month() % mou != 0) {
+				return 0;
+			}
+		} else if (moc == SLASH) {
+			if ((time.month() + mol) % mou != 0) {
+				return 0;
+			}
+		} else if (mol != time.month() && mol != ASTERISK) {
 			return 0;
 		}
 
 
 		if (yyc == DASH) {
-			if (time.year() > yyu && time.year() < yyl) {
+			if ((time.year()-2000) > yyu && (time.year()-2000) < yyl) {
 				return 0;
 			}
-		}
-		if (yyl != time.year() && yyl != ASTERISK) {
+		} else if (yyl == ASTERISK && yyc == SLASH) {
+			if ((time.year() - 2000) % yyu != 0) {
+				return 0;
+			}
+		} else if (yyc == SLASH) {
+			if ((time.year() - 2000 + yyl) % yyu != 0) {
+				return 0;
+			}
+		} else if (yyl != (time.year() - 2000) && yyl != ASTERISK) {
 			return 0;
 		}
 
@@ -148,7 +201,12 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 				}
 				break;
 			default:
-				digitalWrite(devices[id], ScheduleEntry::GetDeviseFinalState(ds));
+				if (ScheduleEntry::GetDeviseFinalState(ds)) {
+					digitalWrite(devices[id], 1);
+				} else {
+					digitalWrite(devices[id], 0);
+				}
+				
 				break;
 		}
 
