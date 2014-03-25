@@ -95,6 +95,8 @@ protected:
 	DateTime time;
 
 	static uint8_t GetDeviseFinalState(uint8_t deviceCommState);
+
+	char serial_buffer[100];
 };
 
 #endif 

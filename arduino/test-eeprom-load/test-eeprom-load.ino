@@ -39,6 +39,9 @@ int entry_bytes_counter = 0;
 
 ScheduleEntry _ScheduleEntry;
 
+int current_second = 0;
+int previous_second = 0;
+
 /*******************************************************************************************************
  * Initialization
  *******************************************************************************************************/
@@ -47,12 +50,15 @@ void setup()
 	Wire.begin();
 	RTC.begin();
 	RTC.adjust(DateTime(__DATE__, __TIME__)); // set the date and time to compilation time
+	
 
 	pinMode(A3, INPUT); // sets whether we are at serial mode (0) or scheduler mode (1)
 	lcd.begin(16, 2); // set up the LCD's number of columns and rows
 	
 	// Check if in serial mode or not
 	if (digitalRead(A3) == 1) {
+		// Serial.begin(56700);
+
 		SerialMode = false;
 		for (i = 0; i < (sizeof(ledPins)/sizeof(int)); i++) {
 			//Serial.println("Set pin[%d] as output.", ledPins[i]);
@@ -132,46 +138,60 @@ void loop()
 	if (!SerialMode) { // scheduler mode
 		// load eeprom data
 
-		// total entries = (1024 eeprom total bytes)/(24 bytes per entry)
-		int k = 0; // current eeprom address
-		for(int i=0; i<42; i++){  // current eeprom entry
+		// save current sec
+		now = RTC.now();
+		current_second = now.second();
 
-			// get current entry
-			for(int j=0; j<24; j++){ // current entry address
-				current_entry[j] = entries[k];
-			    k++;
+		if (current_second != previous_second) {
+			// total entries = (1024 eeprom total bytes)/(24 bytes per entry)
+			int k = 0; // current eeprom address
+			for(int i=0; i<42; i++){  // current eeprom entry
 
-			    // lcd.clear();
-			    // lcd.print(j);
-			    // lcd.setCursor(0, 1);
-			    // lcd.print(current_entry[j]);
-			    // delay(1000);
+				// get current entry
+				for(int j=0; j<24; j++){ // current entry address
+					current_entry[j] = entries[k];
+				    k++;
+
+				    // lcd.clear();
+				    // lcd.print(j);
+				    // lcd.setCursor(0, 1);
+				    // lcd.print(current_entry[j]);
+				    // delay(1000);
+				}
+
+				// check the current entry
+				if (isEmpty(current_entry)) {
+					break;
+				} else {
+					current_entries++;
+					
+					// activate current entry
+					_ScheduleEntry.SetEntry(current_entry);
+					_ScheduleEntry.ActivateEntry(RTC);
+				}
 			}
 
-			// check the current entry
-			if (isEmpty(current_entry)) {
-				break;
-			} else {
-				current_entries++;
+			// slower refresh rate
+			// if (millis() % 1000 < 150) {
+			// 	printTime();
+			// 	lcd.setCursor(10, 1);
+			// 	lcd.print("SCHD");
+
+			// 	lcd.setCursor(15, 1);
+			// 	lcd.print(current_entries);
+			// }
 				
-				// activate current entry
-				_ScheduleEntry.SetEntry(current_entry);
-				_ScheduleEntry.ActivateEntry(RTC);
-			}
-		}
-
-		// slower refresh rate
-		if (millis() % 1000 < 150) {
 			printTime();
-			lcd.setCursor(10, 1);
+			lcd.setCursor(9, 1);
 			lcd.print("SCHD");
 
-			lcd.setCursor(15, 1);
+			lcd.setCursor(14, 1);
 			lcd.print(current_entries);
+
 			current_entries = 0;
 		}
 
-		// delay(1000);
+		previous_second = current_second;
 
 	} else { // serialMode
 		if (state == 3) {

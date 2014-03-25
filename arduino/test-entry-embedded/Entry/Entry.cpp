@@ -69,122 +69,91 @@ uint8_t ScheduleEntry::ActivateEntry(RTC_DS1307 RTC) {
 	// 	Serial.println(analogValue, DEC);
 	// }
 
+	// sprintf(serial_buffer, "ssl: %d timesecond: %d", ssl, time.second());
+	// Serial.println(serial_buffer);
+
 	if (en == 1) {
 		if (ssc == DASH) {
 			if (time.second() > ssu && time.second() < ssl) {
+				// sprintf(serial_buffer, "time.second()<%d> > ssu<%d> && time.second()<%d> < ssl<%d>", time.second(), ssu, time.second(), ssl);
+				// Serial.println(serial_buffer);
 				return 0;
 			}
-		} else if (ssl == ASTERISK && ssc == SLASH) {
-			if ((time.second() % ssu) != 0) {
-				return 0;
-			}
-		} else if (ssc == SLASH) {
-			if (((time.second() + ssl) % ssu) != 0) {
-				return 0;
-			}
-		} else if (ssl != time.second() && ssl != ASTERISK) {
+		}
+		if (ssl != time.second() && ssl != ASTERISK) {
+			// sprintf(serial_buffer, "(ssl<%d> != time.second()<%d> && ssl<%d> != ASTERISK)", ssl, time.second(), ssl);
+			// Serial.println(serial_buffer);
 			return 0;
 		}
 
-
 		if (mnc == DASH) {
 			if (time.minute() > mnu && time.minute() < mnl) {
+				// Serial.println("minute1");
 				return 0;
 			}
-		} else if (mnl == ASTERISK && mnc == SLASH) {
-			if (time.minute() % mnu != 0) {
-				return 0;
-			}
-		} else if (mnc == SLASH) {
-			if ((time.minute() + mnl) % mnu != 0) {
-				return 0;
-			}
-		} else if (mnl != time.minute() && mnl != ASTERISK) {
+		}
+		if (mnl != time.minute() && mnl != ASTERISK) {
+			// Serial.println("minute2");
 			return 0;
 		}
 
 
 		if (hhc == DASH) {
 			if (time.hour() > hhu && time.hour() < hhl) {
+				// Serial.println("hour");
 				return 0;
 			}
-		} else if (hhl == ASTERISK && hhc == SLASH) {
-			if (time.hour() % hhu != 0) {
-				return 0;
-			}
-		} else if (hhc == SLASH) {
-			if ((time.hour() + hhl) % hhu != 0) {
-				return 0;
-			}
-		} else if (hhl != time.hour() && hhl != ASTERISK) {
+		}
+		if (hhl != time.hour() && hhl != ASTERISK) {
+			// Serial.println("hour2");
 			return 0;
 		}
 
 
 		if (mdc == DASH) {
 			if (time.day() > mdu && time.day() < mdl) {
+				// Serial.println("mdu");
 				return 0;
 			}
-		} else if (mdl == ASTERISK && mdc == SLASH) {
-			if (time.day() % mdu != 0) {
-				return 0;
-			}
-		} else if (mdc == SLASH) {
-			if ((time.day() + mdl) % mdu != 0) {
-				return 0;
-			}
-		} else if (mdl != time.day() && mdl != ASTERISK) {
+		}
+		if (mdl != time.day() && mdl != ASTERISK) {
+				// Serial.println("mdu2");
 			return 0;
 		}
 
 
 		if (wdc == DASH) {
 			if (time.dayOfWeek() > wdu && time.dayOfWeek() < wdl) {
+				// Serial.println("dayOfWeek");
 				return 0;
 			}
-		} else if (wdl == ASTERISK && wdc == SLASH) {
-			if (time.dayOfWeek() % wdu != 0) {
-				return 0;
-			}
-		} else if (wdc == SLASH) {
-			if ((time.dayOfWeek() + wdl) % wdu != 0) {
-				return 0;
-			}
-		} else if (wdl != time.dayOfWeek() && wdl != ASTERISK) {
+		}
+		if (wdl != time.dayOfWeek() && wdl != ASTERISK) {
+				// Serial.println("dayOfWeek2");
 			return 0;
 		}
 
 
 		if (moc == DASH) {
 			if (time.month() > mou && time.month() < mol) {
+				// Serial.println("month");
 				return 0;
 			}
-		} else if (mol == ASTERISK && moc == SLASH) {
-			if (time.month() % mou != 0) {
-				return 0;
-			}
-		} else if (moc == SLASH) {
-			if ((time.month() + mol) % mou != 0) {
-				return 0;
-			}
-		} else if (mol != time.month() && mol != ASTERISK) {
+		}
+		if (mol != time.month() && mol != ASTERISK) {
+				// Serial.println("month2");
 			return 0;
 		}
 
 
 		if (yyc == DASH) {
-			if ((time.year()-2000) > yyu && (time.year()-2000) < yyl) {
+			if (time.year()-2000 > yyu && time.year()-2000 < yyl) {
+				// Serial.println("year");
 				return 0;
 			}
-		} else if (yyl == ASTERISK && yyc == SLASH) {
-			if ((time.year() - 2000) % yyu != 0) {
-				return 0;
-			}
-		} else if (yyc == SLASH) {
-			if ((time.year() - 2000 + yyl) % yyu != 0) {
-				return 0;
-			}
-		} else if (yyl != (time.year() - 2000) && yyl != ASTERISK) {
+		}
+		if (yyl != time.year()-2000 && yyl != ASTERISK) {
+			// Serial.println("year2");
 			return 0;
 		}
 

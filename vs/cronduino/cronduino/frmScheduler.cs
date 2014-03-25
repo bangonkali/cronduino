@@ -92,5 +92,10 @@ namespace cronduino
             // MessageBox.Show(e.Exception.Message, "Error at " + e.ColumnIndex + ", " + e.RowIndex, MessageBoxButtons.OK);
             
         }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(this, "Ok naa ni xa bug. Wala jud nako na solve kai di na ma apas. Ang first na entry sa schedule dili mabasa. For some reason. T_T. \n\nMembers:\nAbestano, Aguilar, Celdran, Fujimori, Muti, Regalado", "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }
